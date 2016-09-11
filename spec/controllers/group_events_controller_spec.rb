@@ -6,7 +6,7 @@ RSpec.describe GroupEventsController, type: :controller do
   # GroupEvent. As you add validations to GroupEvent, be sure to
   # adjust the attributes here as well.
   let(:valid_attributes) {
-    { }
+    { published: false }
   }
 
   let(:invalid_attributes) {
@@ -63,6 +63,48 @@ RSpec.describe GroupEventsController, type: :controller do
       it "re-renders the 'new' template" do
         post :create, group_event: invalid_attributes
         expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+  end
+
+  describe "PUT #update" do
+    context "with valid params" do
+      it "updates a group event" do
+        some_group_event = GroupEvent.create!
+        put :update, id: some_group_event.id, group_event: { name: "new name" }
+        expect(response).to render_template("show")
+        expect(assigns(:group_event).name).to eq("new name")
+      end
+    end
+
+    context "with invalid params" do
+      it "doesn't update a group event" do
+        some_group_event = GroupEvent.create!
+        put :update, id: some_group_event.id, group_event: { published: true }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+  end
+
+  describe "GET #publish" do
+    context "with valid params" do
+      it "publishes a group event" do
+        some_group_event = GroupEvent.create!(name: "some name", description: "some description",
+          start_date: 3.days.ago, end_date: DateTime.now)
+        expect(some_group_event.published?).to be false
+        get :publish, id: some_group_event.id
+        expect(response).to render_template("show")
+        expect(assigns(:group_event).published?).to be true
+      end
+    end
+
+    context "with valid params" do
+      it "doesn't publish a group event" do
+        some_group_event = GroupEvent.create!
+        expect(some_group_event.published?).to be false
+        get :publish, id: some_group_event.id
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(assigns(:group_event).errors.count).to eq(4)
       end
     end
   end

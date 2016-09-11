@@ -17,51 +17,45 @@ RSpec.describe GroupEvent, type: :model do
     expect(GroupEvent.new(valid_attributes)).to be_valid
   end
 
-  # it "is not valid without a title" do
-  #   expect(GroupEvent.new(description: "A description", user: non_admin_user)).not_to be_valid
-  # end
+  it "has event duration" do
+    some_group_event = GroupEvent.create!(start_date: 3.days.ago, end_date: 1.days.ago)
+    expect(some_group_event.duration).to eq("2.0 days")
+  end
 
-  # it "is not valid without a description" do
-  #   expect(GroupEvent.new(title: "A title", user: non_admin_user)).not_to be_valid
-  # end
+  it "isn't actually destroyed from DB" do
+    some_group_event = GroupEvent.create!
+    count = GroupEvent.unscoped.count
+    expect {
+      some_group_event.destroy
+    }.to change(GroupEvent, :count).by(-1)
+    expect(GroupEvent.unscoped.count).to eq(count)
+  end
 
-  # it "is not valid without a user" do
-  #   expect(GroupEvent.new(title: "A title", description: "A description")).not_to be_valid
-  # end
+  it "can be published" do
+    some_group_event = GroupEvent.create!(start_date: 3.days.ago, end_date: 1.days.ago,
+      name: "Some event", description: "some description")
+    expect(some_group_event.publish).to be true
+    expect(some_group_event.published).to be true
+  end
 
-  # it "should be able to close from an opened state" do
-  #   support_case = GroupEvent.create!(valid_attributes)
-  #   expect(support_case.status).to eq("opened")
-  #   support_case.close
-  #   expect(support_case.status).to eq("closed")
-  # end
+  it "is not valid without a name if published" do
+    expect(GroupEvent.new(description: "A description", start_date: 3.days.ago,
+      end_date: DateTime.now, published: true)).not_to be_valid
+  end
 
-  # it "should be able to close from a reopened state" do
-  #   support_case = GroupEvent.create!(valid_attributes.merge({ status: 2 }))
-  #   expect(support_case.status).to eq("reopened")
-  #   support_case.close
-  #   expect(support_case.status).to eq("closed")
-  # end
+  it "is not valid without a description if published" do
+    expect(GroupEvent.new(name: "A title", start_date: 3.days.ago,
+      end_date: DateTime.now, published: true)).not_to be_valid
+  end
 
-  # it "should be able to reopen from a closed state" do
-  #   support_case = GroupEvent.create!(valid_attributes.merge({ status: 1 }))
-  #   expect(support_case.status).to eq("closed")
-  #   support_case.reopen
-  #   expect(support_case.status).to eq("reopened")
-  # end
+  it "is not valid without a start_date if published" do
+    expect(GroupEvent.new(name: "A title", description: "some description",
+      end_date: DateTime.now, published: true)).not_to be_valid
+  end
 
-  # it "should be able to archive from a closed state" do
-  #   support_case = GroupEvent.create!(valid_attributes.merge({ status: 1 }))
-  #   expect(support_case.status).to eq("closed")
-  #   support_case.archive
-  #   expect(support_case.status).to eq("archived")
-  # end
-
-  # describe "Associations" do
-  #   it "belongs_to a user" do
-  #     assc = described_class.reflect_on_association(:user)
-  #     expect(assc.macro).to eq :belongs_to
-  #   end
-  # end
+  it "is not valid without a end_date if published" do
+    expect(GroupEvent.new(name: "A title", description: "some description",
+      start_date: 3.days.ago, published: true)).not_to be_valid
+  end
 
 end

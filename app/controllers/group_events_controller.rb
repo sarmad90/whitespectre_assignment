@@ -1,6 +1,5 @@
 class GroupEventsController < ApplicationController
-  before_action :set_group_event, only: [:show, :edit, :update, :destroy]
-  respond_to :json
+  before_action :set_group_event, only: [:show, :edit, :update, :destroy, :publish]
 
   # GET /group_events
   def index
@@ -25,6 +24,15 @@ class GroupEventsController < ApplicationController
     @group_event = GroupEvent.new(group_event_params)
     if @group_event.save
       render :show, status: :created, location: @group_event
+    else
+      render json: @group_event.errors, status: :unprocessable_entity
+    end
+  end
+
+  # GET /group_events/1/publish
+  def publish
+    if @group_event.publish
+      render :show, status: :ok, location: @group_event
     else
       render json: @group_event.errors, status: :unprocessable_entity
     end
